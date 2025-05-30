@@ -1,29 +1,33 @@
 // ==UserScript==
-// @name         Reload on Block Page
-// @namespace    Violentmonkey Scripts
+// @name         Redirect on Shortlink Message
+// @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Reload page if "Sorry, you have been blocked" message appears
+// @description  Redirect to Google if "You must complete at least 1 Shortlink to continue." appears
+// @author       You
 // @match        *://*/*
 // @grant        none
 // ==/UserScript==
 
-(function () {
-  'use strict';
+(function() {
+    'use strict';
 
-  function checkBlockedMessage() {
-    const blockedElement = document.querySelector('h1[data-translate="block_headline"]');
-    if (blockedElement && blockedElement.textContent.includes("Sorry, you have been blocked")) {
-      console.log("Blocked message detected. Reloading page...");
-      location.reload();
+    function checkAndRedirect() {
+        const targetDiv = document.evaluate(
+            '//div[text()="You must complete at least 1 Shortlink to continue."]',
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue;
+
+        if (targetDiv) {
+            window.location.href = "https://www.google.com";
+        }
     }
-  }
 
-  // Run once after page load
-  window.addEventListener('load', () => {
-    checkBlockedMessage();
-
-    // Also observe DOM changes in case the element appears after load
-    const observer = new MutationObserver(checkBlockedMessage);
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
+    // Run check after page load
+    window.addEventListener('load', () => {
+        // Delay to allow page to fully render dynamic content
+        setTimeout(checkAndRedirect, 1500);
+    });
 })();
