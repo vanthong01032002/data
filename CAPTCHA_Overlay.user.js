@@ -1,35 +1,29 @@
 // ==UserScript==
-// @name         Remove Overlay and Block Click Redirect - OnlyFaucet
-// @namespace    http://tampermonkey.net/
+// @name         Reload on Block Page
+// @namespace    Violentmonkey Scripts
 // @version      1.0
-// @description  Xóa lớp phủ và ngăn sự kiện click gây chuyển tab trên onlyfaucet.com
-// @author       Bạn
-// @match        https://onlyfaucet.com/faucet/currency/usdt
+// @description  Reload page if "Sorry, you have been blocked" message appears
+// @match        *://*/*
 // @grant        none
 // ==/UserScript==
 
-(function() {
-    'use strict';
+(function () {
+  'use strict';
 
-    // Hàm xóa lớp phủ và ngăn click
-    function removeOverlayAndBlockClick() {
-        const el = document.getElementById('pop-body-12321');
-        if (el) el.remove();
-
-        document.onclick = function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-        };
-
-        document.body.onclick = function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-        };
+  function checkBlockedMessage() {
+    const blockedElement = document.querySelector('h1[data-translate="block_headline"]');
+    if (blockedElement && blockedElement.textContent.includes("Sorry, you have been blocked")) {
+      console.log("Blocked message detected. Reloading page...");
+      location.reload();
     }
+  }
 
-    // Chạy ngay lập tức
-    removeOverlayAndBlockClick();
+  // Run once after page load
+  window.addEventListener('load', () => {
+    checkBlockedMessage();
 
-    // Chạy lặp để chặn nếu nó bị tạo lại sau đó
-    setInterval(removeOverlayAndBlockClick, 500);
+    // Also observe DOM changes in case the element appears after load
+    const observer = new MutationObserver(checkBlockedMessage);
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
 })();
