@@ -1,44 +1,32 @@
 // ==UserScript==
-// @name         Auto Click Claim on Captcha Success - OnlyFaucet (Enhanced)
+// @name         Auto Redirect on Modal Header
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Tự động nhấn nút Claim khi captcha thành công trên onlyfaucet.com, trừ khi cần Shortlink trước đó.
-// @author       Bạn
-// @match        https://onlyfaucet.com/*
+// @version      1.0
+// @description  Redirect if a specific modal header exists
+// @author       You
+// @match        *://*/*
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
-    const observer = new MutationObserver(() => {
-        const msgDiv = document.querySelector('div[style*="min-height"]');
-        const claimBtn = document.getElementById('subbutt');
-        const shortlinkWarning = document.querySelector(
-            'div.swal2-html-container#swal2-html-container'
-        );
+    // Function to check the modal existence
+    function checkModalAndRedirect() {
+        const modalHeader = document.querySelector('div.modal-header.text-center[style*="background-color: blue"][style*="color: white"][style*="padding: 10px;"]');
+        const modalTitle = document.querySelector('#adformModalLabel');
 
-        const shortlinkMessageShown = shortlinkWarning &&
-            shortlinkWarning.style.display !== 'none' &&
-            shortlinkWarning.textContent.includes('You must complete at least 1 Shortlink to continue.');
-
-        if (
-            msgDiv &&
-            /✓ Correct!/i.test(msgDiv.textContent) &&
-            claimBtn &&
-            !claimBtn.disabled &&
-            !shortlinkMessageShown
-        ) {
-            console.log('[UserScript] CAPTCHA passed and no shortlink warning — clicking Claim button...');
-            claimBtn.click();
-        } else if (shortlinkMessageShown) {
-            console.log('[UserScript] Shortlink requirement message found — skipping Claim button click.');
+        if (modalHeader && modalTitle && modalTitle.textContent.includes('Click the button below to continue')) {
+            window.location.href = 'https://onlyfaucet.com/faucet/currency/usdt';
         }
+    }
+
+    // Wait for the DOM to load
+    window.addEventListener('load', () => {
+        setTimeout(checkModalAndRedirect, 1000); // Delay to ensure content is rendered
     });
 
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-    });
+    // Also observe DOM changes (in case content is injected dynamically)
+    const observer = new MutationObserver(checkModalAndRedirect);
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
