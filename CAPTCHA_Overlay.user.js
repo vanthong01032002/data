@@ -1,32 +1,35 @@
 // ==UserScript==
-// @name         Auto Redirect on Modal Header
+// @name         Auto Click Verify Button
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Redirect if a specific modal header exists
-// @author       You
-// @match        *://*/*
+// @description  Tự động click nút Verify nếu có Antibot và Upside solved
+// @match        https://viefaucet.com/*
 // @grant        none
 // ==/UserScript==
 
-(function () {
+(function() {
     'use strict';
 
-    // Function to check the modal existence
-    function checkModalAndRedirect() {
-        const modalHeader = document.querySelector('div.modal-header.text-center[style*="background-color: blue"][style*="color: white"][style*="padding: 10px;"]');
-        const modalTitle = document.querySelector('#adformModalLabel');
+    function checkAndClick() {
+        const elements = Array.from(document.querySelectorAll('.captcha-solver-info'));
+        const texts = elements.map(el => el.textContent.trim());
 
-        if (modalHeader && modalTitle && modalTitle.textContent.includes('Click the button below to continue')) {
-            window.location.href = 'https://onlyfaucet.com/faucet/currency/usdt';
+        const hasAntibot = texts.some(text => text.includes("Antibot solved!"));
+        const hasUpside = texts.some(text => text.includes("Upside solved!"));
+
+        if (hasAntibot && hasUpside) {
+            const verifyBtn = document.querySelector('button.el-button.el-button--primary.el-tooltip__trigger[aria-disabled="false"]');
+            if (verifyBtn) {
+                console.log('Tự động click nút Verify');
+                verifyBtn.click();
+            } else {
+                console.log('Không tìm thấy nút Verify hoặc nút đang bị disabled');
+            }
+        } else {
+            console.log('Chưa đủ điều kiện Antibot & Upside');
         }
     }
 
-    // Wait for the DOM to load
-    window.addEventListener('load', () => {
-        setTimeout(checkModalAndRedirect, 1000); // Delay to ensure content is rendered
-    });
-
-    // Also observe DOM changes (in case content is injected dynamically)
-    const observer = new MutationObserver(checkModalAndRedirect);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Kiểm tra mỗi 1s
+    setInterval(checkAndClick, 1000);
 })();
